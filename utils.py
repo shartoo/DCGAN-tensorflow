@@ -89,6 +89,52 @@ def transform(image, input_height, input_width,
 def inverse_transform(images):
   return (images+1.)/2.
 
+
+def read_label_list(file="labels"):
+    '''
+       read every image label from file
+    :param file:  every line likes image\t label
+    :return: a dictionary whose key is image filename and value is label
+    '''
+    dict = {}
+    all_labels=[]
+    with open(file,"r+") as file_open:
+        for line in file_open:
+            kv = re.split("\\s+",line)
+            if len(kv)==2 or len(kv)==3:  # \\s+ regrex contains newline character
+                dict[kv[0]]=kv[1]
+                if kv[1] not in all_labels:
+                    all_labels.append(kv[1])
+    return dict,all_labels
+
+def image_path2label_list(path,label_file = "labels"):
+    '''
+       get all image and its label in the "path",the subpath name is the label of image inside it
+
+       if all image are of one label,there is no subpath,then method will return write nothing to file
+    :param path:       image path(may contains some subpath)
+    :param label_file: file to be write(every line is consist of "image filename \t label")
+    :return:
+    '''
+    #files = os.listdir(path)
+    with open(label_file,"w") as fp:
+        files = os.listdir(path)
+        line_list=[]
+        for file in files:
+            subpath =os.path.join(path,file)
+            if os.path.isdir(subpath):
+                label = str(file)
+                img_names = os.listdir(subpath)
+                for img_name in img_names:
+                    line = str(img_name)+"\t"+label+"\n"
+                    line_list.append(line)
+            else:
+                line = str(file) + "\t" + "default_label" + "\n"  # image below the path share a same label
+                line_list.append(line)
+        fp.writelines(line_list)
+        fp.flush()
+
+
 def to_json(output_path, *layers):
   with open(output_path, "w") as layer_f:
     lines = ""
